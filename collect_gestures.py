@@ -58,6 +58,8 @@ import mediapipe as mp
 from mediapipe.tasks import python as mp_python
 from mediapipe.tasks.python import vision
 
+from gesture_features import csv_header, normalize_landmarks
+
 # Verify this URL against the MediaPipe docs if the download fails.
 MODEL_URL = (
     "https://storage.googleapis.com/mediapipe-models/hand_landmarker/"
@@ -149,22 +151,6 @@ WHITE, GREEN, YELLOW, RED, GRAY = (255, 255, 255), (0, 220, 0), (0, 220, 255), (
 
 class Quit(Exception):
     pass
-
-
-# --------------------------------------------------------------------------
-# Feature normalization. The live demo must use the same function.
-# --------------------------------------------------------------------------
-def normalize_landmarks(pts: np.ndarray, handedness: str):
-    """pts: (21, 3) raw landmarks. Returns a flat (63,) array or None."""
-    p = pts.astype(np.float32).copy()
-    p -= p[0]                                   # wrist at origin
-    if handedness == "Left":
-        p[:, 0] *= -1.0                          # make left hands look like right hands
-    scale = float(np.linalg.norm(p[9, :2]))      # wrist to middle finger base (2D)
-    if scale < 1e-4:
-        return None
-    p /= scale
-    return p.flatten()
 
 
 # --------------------------------------------------------------------------
@@ -341,16 +327,6 @@ def record_take(src, duration, header_lines):
 # --------------------------------------------------------------------------
 # CSV
 # --------------------------------------------------------------------------
-def csv_header():
-    cols = ["subject_id", "session_id", "label", "take", "variation",
-            "frame_idx", "t_sec", "handedness", "handedness_score"]
-    for i in range(21):
-        cols += [f"r{i}_x", f"r{i}_y", f"r{i}_z"]
-    for i in range(21):
-        cols += [f"f{i}_x", f"f{i}_y", f"f{i}_z"]
-    return cols
-
-
 def append_rows(path, subject, session, label, take_no, var_key, rows):
     new_file = not os.path.exists(path) or os.path.getsize(path) == 0
     with open(path, "a", newline="") as f:

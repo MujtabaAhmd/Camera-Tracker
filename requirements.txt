@@ -1,4 +1,15 @@
+# Core (data collection, live demo)
 mediapipe
 opencv-python
 numpy
-pyserial
+
+# Training and evaluation
+pandas
+scikit-learn
+joblib
+matplotlib
+
+# Optional
+torch          # PyTorch MLP in train_gestures.py (falls back to scikit-learn's MLP without it)
+pyautogui      # needed only for --live (pressing keys)
+pyserial       # needed only when driving the Arduino servo
